@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "naver-blog": {
-      "command": "node",
-      "args": ["./dist/mcp/stdio.js"]
-    }
-  }
-}

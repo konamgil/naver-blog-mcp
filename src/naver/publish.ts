@@ -91,11 +91,13 @@ async function waitForEditorReady(page: Page): Promise<void> {
 }
 
 async function dismissPopups(page: Page): Promise<void> {
-  // "작성 중인 글" 복원 다이얼로그. 취소(새로 작성) 선택
+  // "작성 중인 글" 복원 다이얼로그. 취소(새로 작성) 선택.
+  // ⚠️ 'button:has-text("취소")' 같은 부분 매칭은 toolbar의 "취소선(strikethrough)"
+  //    버튼까지 잡아서 본문 입력 전에 strike가 켜져버리는 버그가 있었음.
+  //    정확한 다이얼로그 selector만 사용.
   for (const sel of [
     'button.se-popup-button-cancel',
     '.se-popup-button-cancel',
-    'button:has-text("취소")',
   ]) {
     const btn = page.locator(sel).first();
     if (await btn.isVisible().catch(() => false)) {

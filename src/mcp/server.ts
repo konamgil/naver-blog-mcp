@@ -71,7 +71,7 @@ async function upsertAccountWithSession(args: {
 export function createMcpServer(): McpServer {
   const server = new McpServer({
     name: 'naver-blog-mcp',
-    version: '0.1.1',
+    version: '0.1.2',
   });
 
   server.registerTool(

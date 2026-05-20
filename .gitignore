@@ -16,6 +16,9 @@ data/
 .env.*
 !.env.example
 
+# MCP client config (dev-local: points at ./dist for local testing; users should write their own)
+.mcp.json
+
 # Debug screenshots / artifacts
 *.png
 
