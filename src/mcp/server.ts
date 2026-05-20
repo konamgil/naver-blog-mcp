@@ -71,7 +71,7 @@ async function upsertAccountWithSession(args: {
 export function createMcpServer(): McpServer {
   const server = new McpServer({
     name: 'naver-blog-mcp',
-    version: '0.1.2',
+    version: '0.1.3',
   });
 
   server.registerTool(
@@ -196,22 +196,36 @@ export function createMcpServer(): McpServer {
       title: '브라우저 띄워서 사용자 직접 로그인',
       description:
         '서버 PC에 브라우저 창이 떠서 사용자가 직접 로그인 (캡차/2FA 가능). ' +
-        '로그인 완료 후 세션 저장 + 계정 자동 upsert. 같은 PC 앞에 사용자가 있어야 함.',
+        '로그인 완료 후 세션 저장 + 계정 자동 upsert. 같은 PC 앞에 사용자가 있어야 함. ' +
+        'password 옵션으로 미리 비밀번호를 함께 저장해두면 세션 만료 시 자동 재로그인 가능.',
       inputSchema: {
         naverId: z.string(),
         label: z.string().optional(),
         blogId: z.string().optional(),
+        password: z
+          .string()
+          .optional()
+          .describe(
+            '옵션: 세션 만료 시 자동 재로그인용. AES-256-GCM 암호화 저장. ' +
+              '미지정 시 세션 파일만 저장됨.',
+          ),
       },
     },
-    async ({ naverId, label, blogId }) => {
+    async ({ naverId, label, blogId, password }) => {
       try {
         await interactiveLogin(naverId);
-        const acct = await upsertAccountWithSession({ naverId, label, blogId });
+        const acct = await upsertAccountWithSession({
+          naverId,
+          label,
+          blogId,
+          password,
+        });
         return ok({
           accountId: acct.id,
           isNew: acct.isNew,
           naverId,
           hasSession: true,
+          hasPassword: Boolean(password),
         });
       } catch (e) {
         return fail(e);

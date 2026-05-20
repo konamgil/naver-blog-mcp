@@ -40,14 +40,30 @@ export async function publishById(postId: number): Promise<void> {
       await automatedLogin(account.naverId, password);
     }
 
-    const result = await publishPost({
+    const publishArgs = {
       naverId: account.naverId,
       blogId: account.blogId ?? undefined,
       title: post.title,
       content: post.content,
       tags: post.tags?.split(',').map((t) => t.trim()).filter(Boolean),
       category: post.category ?? undefined,
-    });
+    };
+
+    let result;
+    try {
+      result = await publishPost(publishArgs);
+    } catch (err) {
+      // 세션이 만료된 경우 (네이버가 세션 invalidate) 저장된 비밀번호로 자동 재로그인 후 1회 retry.
+      // 이렇게 하면 ID/PW가 저장돼 있는 한 사용자 개입 없이 발행을 이어갈 수 있다.
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('SESSION_EXPIRED') && account.encryptedPassword) {
+        const password = decrypt(account.encryptedPassword);
+        await automatedLogin(account.naverId, password);
+        result = await publishPost(publishArgs);
+      } else {
+        throw err;
+      }
+    }
 
     // 처음 발행 시 자동 추출된 blogId를 account에 저장 (다음번부터 재사용)
     if (!account.blogId && result.blogId) {

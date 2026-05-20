@@ -57,7 +57,7 @@ Add to `~/.cursor/mcp.json` (use the same OS-specific `command`/`args` as Claude
 | Tool | Description |
 |---|---|
 | `naver_login_with_credentials` | Auto-login with ID/PW. ⚠️ Often blocked by CAPTCHA. |
-| `naver_login_interactive` | Open a browser window for the user to log in manually (handles CAPTCHA/2FA). |
+| `naver_login_interactive` | Open a browser window for the user to log in manually (handles CAPTCHA/2FA). Optional `password` arg stores credentials encrypted for auto session recovery. |
 | `naver_login_status` | Check whether a saved session exists for a given Naver ID. |
 | `naver_register_account` | Register an account in the local DB without logging in. |
 | `naver_list_accounts` | List registered accounts. |
@@ -76,6 +76,15 @@ Add to `~/.cursor/mcp.json` (use the same OS-specific `command`/`args` as Claude
 3. **You log in manually** (handles CAPTCHA / 2FA / new-device verification).
 4. On successful login the session is saved to disk; account upserted.
 5. Subsequent calls (`naver_publish_now`, etc.) reuse the session — no browser interaction needed.
+
+## Session resilience
+
+If both ID and encrypted password are stored (via `naver_login_with_credentials`, or `naver_login_interactive` with the optional `password` arg, or `naver_register_account` with `password`), publish automatically recovers from session loss:
+
+- **No session file** → auto-login with stored password before publishing.
+- **Session file exists but Naver invalidated it** (`SESSION_EXPIRED` at publish time) → auto-login + retry publish once.
+
+This means: give the credentials **once**, and the agent keeps publishing across long gaps without re-prompting the user. If you only saved a session (no password), session loss requires another interactive login.
 
 ## Data location
 
